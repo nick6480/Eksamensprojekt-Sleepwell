@@ -11,7 +11,7 @@ class Gui():
 
         self.display_page_layout()
         
-        skiplogin = False # Debug: Change to true to skip the log in screen
+        skiplogin = False # Debug: Set to true to skip the login screen
 
         if skiplogin:
             self.display_dashboard()
@@ -154,7 +154,7 @@ class Gui():
 
         inputs = ['Gender', 'Age', 'Occupation', 'Sleep Duration', 'Sleep Quality', 'Physical Activity Level', 'Stress Level', 'BMI Category', 'Blood Pressure', 'Heart Rate', 'Daily Steps', 'Sleep Disorder']
 
-        self.build_data_input(data_add_frame, inputs, 'left', 6, 'TLabel')
+        self.build_data_input(data_add_frame, inputs, 'left', 6, 'data.TLabel', 'data.TEntry')
 
 
 
@@ -171,19 +171,19 @@ class Gui():
         add_btn.pack(side='left', anchor='nw', padx=10, pady=10)
     
     # Generates all labels and entries to insert new data
-    def build_data_input(self, frame, input_list, justify, maxCol, style):
+    def build_data_input(self, frame, input_list, justify, maxCol, label_style, entry_style):
         row = 0
         col = 0
 
         for input in input_list:
-            print(f'input_label row:{row}, col:{col}')
-            label = ttk.Label(frame, text = input, justify = justify, style = style)
+            #print(f'input_label row:{row}, col:{col}')
+            label = ttk.Label(frame, text = input, justify = justify, style = label_style)
             label.grid(row=row, column=col)
 
             col += 1
 
-            print(f'input_entry row:{row}, col:{col}')
-            entry = ttk.Entry(frame)
+            #print(f'input_entry row:{row}, col:{col}')
+            entry = ttk.Entry(frame, style = entry_style)
             entry.grid(row=row, column=col)
             
             col += 1
@@ -255,15 +255,31 @@ class Gui():
 
 
 
-    # For styling the elements
+    # Styling the widgets
     def style(self):
         style = ttk.Style()
+
+        """
+            styles: 
+                TFrame -- The standard style for frames
+                o.TFrame -- Ocupation frame on the left side of dashboard
+                d.TFrame -- Data frame on the right side of dashboard
+
+                data.TLabel -- Lables for the data input labels
+                data.TEntry -- Lables for the data input entrty fields
+
+                H2.TLabel -- Heading h2 
+        """
+
 
 
         # Create style used by default for all Frames
         style.configure('TFrame', background='#303030') #All frames have this color as default
         style.configure('o.TFrame', background='#404040') # Temp -- ocupation frame
         style.configure('d.TFrame', background='#303030') # Temp -- data frame
+
+        style.configure('data.TLabel', background='red')    
+         
 
         style.configure('H2.TLabel', # Headings style
             font=(None, 12),
