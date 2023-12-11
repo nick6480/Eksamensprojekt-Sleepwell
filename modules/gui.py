@@ -1,5 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import filedialog
+
+from data import Data
 
 class Gui():
     def __init__(self) -> None:
@@ -7,11 +10,14 @@ class Gui():
         self.root.title('SleepWell - Trivselsinitiativ')
         self.root.geometry('1280x720')
 
+        self.data = Data()
+
+
         self.style()
 
         self.display_page_layout()
         
-        skiplogin = False # Debug: Set to true to skip the login screen
+        skiplogin = True # Debug: Set to true to skip the login screen
 
         if skiplogin:
             self.display_dashboard()
@@ -107,18 +113,18 @@ class Gui():
         self.data_table['columns'] = ('ID', 'gender', 'age', 'occupation', 'sleep_duration', 'sleep_quality', 'physical_activity_level', 'stress_level', 'bmi_category', 'blood_pressure', 'heart_rate', 'daily_steps', 'sleep_disorder')
         
         # Assing width and minwidth and anchor to respective columns
-        self.data_table.column('ID', width=20, minwidth=20, anchor = tk.CENTER)
+        self.data_table.column('ID', width=30, minwidth=30, anchor = tk.CENTER)
         self.data_table.column('gender', width=50, minwidth=50, anchor = tk.CENTER)
         self.data_table.column('age', width=50, minwidth=50, anchor = tk.CENTER)
-        self.data_table.column('occupation', width=70, minwidth=70, anchor = tk.CENTER)
+        self.data_table.column('occupation', width=120, minwidth=120, anchor = tk.CENTER)
         self.data_table.column('sleep_duration', width=90, minwidth=90, anchor = tk.CENTER)
         self.data_table.column('sleep_quality', width=90, minwidth=90, anchor = tk.CENTER)
         self.data_table.column('physical_activity_level', width=130, minwidth=130, anchor = tk.CENTER)
-        self.data_table.column('stress_level', width=100, minwidth=100, anchor = tk.CENTER)
+        self.data_table.column('stress_level', width=70, minwidth=70, anchor = tk.CENTER)
         self.data_table.column('bmi_category', width=100, minwidth=100, anchor = tk.CENTER)
         self.data_table.column('blood_pressure', width=100, minwidth=100, anchor = tk.CENTER)
-        self.data_table.column('heart_rate', width=100, minwidth=100, anchor = tk.CENTER)
-        self.data_table.column('daily_steps', width=100, minwidth=100, anchor = tk.CENTER)
+        self.data_table.column('heart_rate', width=70, minwidth=70, anchor = tk.CENTER)
+        self.data_table.column('daily_steps', width=70, minwidth=70, anchor = tk.CENTER)
         self.data_table.column('sleep_disorder', width=100, minwidth=100, anchor = tk.CENTER)
 
         # Assign the heading names to the respective columns
@@ -142,9 +148,9 @@ class Gui():
 
 
         # Temp data inserts -- needs to be removed
-        self.data_table.insert(parent='', index = 'end', values = [1, 'male', 32, 'Doctor', 7.5, 6, 5, 7, 'Normal', '125/80', 70, 10000, 'None'])
-        self.data_table.insert(parent='', index = 'end', values = [2, 'female', 32, 'Teacher', 7.5, 6, 5, 7, 'Normal', '125/80', 70, 10000, 'None'])
-        self.data_table.insert(parent='', index = 'end', values = [3, 'male', 32, 'Scientist', 7.5, 6, 5, 7, 'Normal', '125/80', 70, 10000, 'None'])
+        #self.data_table.insert(parent='', index = 'end', values = [1, 'male', 32, 'Doctor', 7.5, 6, 5, 7, 'Normal', '125/80', 70, 10000, 'None'])
+        #self.data_table.insert(parent='', index = 'end', values = [2, 'female', 32, 'Teacher', 7.5, 6, 5, 7, 'Normal', '125/80', 70, 10000, 'None'])
+        #self.data_table.insert(parent='', index = 'end', values = [3, 'male', 32, 'Scientist', 7.5, 6, 5, 7, 'Normal', '125/80', 70, 10000, 'None'])
 
 
         # Add new rows to database and treeview -- not working currently
@@ -169,7 +175,66 @@ class Gui():
         
         add_btn = ttk.Button(data_options_frame, text = 'Add')
         add_btn.pack(side='left', anchor='nw', padx=10, pady=10)
-    
+        
+        upload_csv_btn = tk.Button(data_options_frame, text='Add CSV', command=self.upload_csv)
+        upload_csv_btn.pack(side='left', anchor='nw', padx=10, pady=10)
+
+
+        self.display_treeview_data()
+
+    def upload_csv(self):
+        filename = filedialog.askopenfilename()
+        print('Selected:', filename)
+
+        data_dict = {
+            'employee' : ['person_id', 'gender', 'age', 'occupation'],
+            'health' : ['stress_level', 'bmi_category', 'blood_pressure', 'heart_rate'],
+            'activity' : ['activity_level', 'daily_steps'],
+            'sleep' : ['sleep_duration', 'quality_of_sleep', 'sleep_disorder']
+        }  
+
+        data = self.data.csv_to_DB(filename, data_dict)
+
+
+
+
+
+
+
+
+
+
+
+
+    def display_treeview_data(self):
+        data_dict = {
+            'employee' : ['person_id', 'gender', 'age', 'occupation'],
+            'health' : ['stress_level', 'bmi_category', 'blood_pressure', 'heart_rate'],
+            'activity' : ['activity_level', 'daily_steps'],
+            'sleep' : ['sleep_duration', 'quality_of_sleep', 'sleep_disorder']
+        }    
+
+        data = self.data.read(data_dict)
+
+        for value in data:
+            #print(value['gender'])
+            self.data_table.insert(parent='', index = 'end', values = [
+                value['person_id'], 
+                value['gender'],
+                value['age'], 
+                value['occupation'], 
+                value['sleep_duration'],
+                value['quality_of_sleep'],
+                value['activity_level'],
+                value['stress_level'],
+                value['bmi_category'],
+                value['blood_pressure'],
+                value['heart_rate'],
+                value['daily_steps'],
+                value['sleep_disorder'],
+            ])
+            
+            
     # Generates all labels and entries to insert new data
     def build_data_input(self, frame, input_list, justify, maxCol, label_style, entry_style):
         row = 0
@@ -203,7 +268,6 @@ class Gui():
         self.data_text.config(text = occupation)
 
 
-
     # Read DB
     def read(self):
         pass
@@ -222,7 +286,7 @@ class Gui():
                 id_list.append(current_id)
             
             print(id_list)
-            #data.deleteByID('test_table', id_list)
+            self.data.delete('employee','person_id' ,id_list)
 
             for record in selected_items:
                 self.data_table.delete(record)
