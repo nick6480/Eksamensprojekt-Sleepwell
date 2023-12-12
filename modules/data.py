@@ -35,7 +35,7 @@ class Data():
         header = data[0]
         data = data[1]
         
-        #print(data_dict)
+        #print(data)
 
         tables_list = list(data_dict.keys())
 
@@ -46,8 +46,8 @@ class Data():
 
         header_str = ",".join(str(element) for element in header)  
   
-        print(header)
-        print(header.index('age'))
+        #print(header)
+        #print(header.index('age'))
 
 
         data_list = []
@@ -78,7 +78,8 @@ class Data():
                 }
             }  
             
-            #self.write(data_dict)
+            print(data_dict)
+            self.write(data_dict)
 
 
 
@@ -114,23 +115,29 @@ class Data():
         mydb.close()
 
 
-
-
-    def read(self, data_dict):
-        
-
+    def read(self, data_dict, select = (False, '', '', '')):
         tables_list = list(data_dict.keys())
 
+        #select = (True, 'employee', 'occupation', 'Doctor')
 
+
+        print(select[0])
+        print(select[1])
         mydb = self.connect_DB()
         mycursor = mydb.cursor()
-        
+
+
         data_list = []
         for table in tables_list:
             column_str = ", ".join(str(element) for element in data_dict[table])  
 
-            sql = f"SELECT {column_str} FROM {table}"
+            if select[1] == table and select[0] == True:
+                sql = f"SELECT {column_str} FROM {table} WHERE {select[2]} = '{select[3]}'" 
+            else: 
+                sql = f"SELECT {column_str} FROM {table}"
+                
 
+                #sql = f"IF EXISTS (SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'employee' AND COLUMN_NAME = 'occupation') SELECT {column_str} FROM {table} WHERE {select[0]} = {select[1]}; ELSE SELECT 'Column does not exist' AS result; END IF;"
 
             mycursor.execute(sql)
 
@@ -142,6 +149,7 @@ class Data():
                     for row in mycursor.fetchall()]
             data_list.append(data)
 
+            #print(data_list)
         self.close_DB(mydb)
 
 
@@ -248,5 +256,6 @@ if __name__ == "__main__":
 
     data = Data()
     #data.write(data_dict)
-    #data.read(data_dict)
+    data.read(data_dict)
     #data.csv_to_DB('G:/Mit drev/IBA/IT-Arkitektur/Project 3 - Eksamen/Projekt 3/Sleep_health_and_lifestyle_dataset.csv', data_dict)
+    #data.read_by_colunm()

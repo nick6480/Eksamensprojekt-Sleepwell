@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 
-from data import Data
+from modules.data import Data
 
 class Gui():
     def __init__(self) -> None:
@@ -12,6 +12,7 @@ class Gui():
 
         self.data = Data()
 
+        self.current_occupation = 'Doctor'
 
         self.style()
 
@@ -98,11 +99,12 @@ class Gui():
         ocupation_text = ttk.Label(ocupation_frame, text = "ocupation")
         #ocupation_text.pack()
 
-        self.data_text = ttk.Label(data_frame, text = "Data_placeholder_title", justify="left", style='H2.TLabel')
+        self.data_text = ttk.Label(data_frame, text = self.current_occupation, justify="left", style='H2.TLabel')
         self.data_text.pack(anchor='nw', padx=10, pady=10)
 
-
-        occupation_temp = sorted(['Doctor','Software E', 'Sales Repr', 'Teacher', 'Nurse', 'Engineer', 'Accountant', 'Scientist', 'Lawyer', 'Salesperson'])
+     
+        occupation_temp = ['All', 'Accountant', 'Doctor', 'Engineer', 'Lawyer', 'Nurse', 'Sales Representative', 'Salesperson', 'Scientist', 'Software Engineer', 'Teacher']
+        print(sorted(occupation_temp))
         self.build_buttons(ocupation_frame, occupation_temp, 0, 5)
 
 
@@ -112,6 +114,9 @@ class Gui():
         self.data_table['show'] = 'headings'
         self.data_table['columns'] = ('ID', 'gender', 'age', 'occupation', 'sleep_duration', 'sleep_quality', 'physical_activity_level', 'stress_level', 'bmi_category', 'blood_pressure', 'heart_rate', 'daily_steps', 'sleep_disorder')
         
+        
+
+
         # Assing width and minwidth and anchor to respective columns
         self.data_table.column('ID', width=30, minwidth=30, anchor = tk.CENTER)
         self.data_table.column('gender', width=50, minwidth=50, anchor = tk.CENTER)
@@ -146,21 +151,14 @@ class Gui():
 
 
 
-
-        # Temp data inserts -- needs to be removed
-        #self.data_table.insert(parent='', index = 'end', values = [1, 'male', 32, 'Doctor', 7.5, 6, 5, 7, 'Normal', '125/80', 70, 10000, 'None'])
-        #self.data_table.insert(parent='', index = 'end', values = [2, 'female', 32, 'Teacher', 7.5, 6, 5, 7, 'Normal', '125/80', 70, 10000, 'None'])
-        #self.data_table.insert(parent='', index = 'end', values = [3, 'male', 32, 'Scientist', 7.5, 6, 5, 7, 'Normal', '125/80', 70, 10000, 'None'])
-
-
-        # Add new rows to database and treeview -- not working currently
+        # Add new rows to database and treeview -- REMOVE
         data_add_frame = ttk.Frame(data_frame, style='o.TFrame', width = r_width - r_width/8, height=100)
         data_add_frame.pack_propagate(0)
-        data_add_frame.grid(row=2, column=0)
+        #data_add_frame.grid(row=2, column=0)
 
         inputs = ['Gender', 'Age', 'Occupation', 'Sleep Duration', 'Sleep Quality', 'Physical Activity Level', 'Stress Level', 'BMI Category', 'Blood Pressure', 'Heart Rate', 'Daily Steps', 'Sleep Disorder']
 
-        self.build_data_input(data_add_frame, inputs, 'left', 6, 'data.TLabel', 'data.TEntry')
+        #self.build_data_input(data_add_frame, inputs, 'left', 6, 'data.TLabel', 'data.TEntry')
 
 
 
@@ -174,13 +172,13 @@ class Gui():
         delete_btn.pack(side='left', anchor='nw', padx=10, pady=10)
         
         add_btn = ttk.Button(data_options_frame, text = 'Add')
-        add_btn.pack(side='left', anchor='nw', padx=10, pady=10)
+        #add_btn.pack(side='left', anchor='nw', padx=10, pady=10)
         
         upload_csv_btn = tk.Button(data_options_frame, text='Add CSV', command=self.upload_csv)
         upload_csv_btn.pack(side='left', anchor='nw', padx=10, pady=10)
 
 
-        self.display_treeview_data()
+        self.display_treeview_data((True, 'employee', 'occupation', self.current_occupation))
 
     def upload_csv(self):
         filename = filedialog.askopenfilename()
@@ -193,20 +191,26 @@ class Gui():
             'sleep' : ['sleep_duration', 'quality_of_sleep', 'sleep_disorder']
         }  
 
-        data = self.data.csv_to_DB(filename, data_dict)
+        
+        self.data.csv_to_DB(filename, data_dict)
+        
+        self.display_treeview_data((True, 'employee', 'occupation', self.current_occupation))
+
+    # Change what data is being shown -- currently only changes self.data_text
+    def get_occupations(self, occupation):
+        self.current_occupation = occupation
+
+        self.data_text.config(text = self.current_occupation)
+
+        if occupation == 'All':
+            self.display_treeview_data((False, 'employee', 'occupation', self.current_occupation))
+        else: 
+            self.display_treeview_data((True, 'employee', 'occupation', self.current_occupation))
 
 
-
-
-
-
-
-
-
-
-
-
-    def display_treeview_data(self):
+    def display_treeview_data(self, occupation):
+        self.data_table.delete(*self.data_table.get_children()) # Clears the treeview
+        
         data_dict = {
             'employee' : ['person_id', 'gender', 'age', 'occupation'],
             'health' : ['stress_level', 'bmi_category', 'blood_pressure', 'heart_rate'],
@@ -214,7 +218,7 @@ class Gui():
             'sleep' : ['sleep_duration', 'quality_of_sleep', 'sleep_disorder']
         }    
 
-        data = self.data.read(data_dict)
+        data = self.data.read(data_dict, occupation)
 
         for value in data:
             #print(value['gender'])
@@ -263,9 +267,7 @@ class Gui():
         self.get_occupations(clicked_button)
 
 
-    # Change what data is being shown -- currently only changes self.data_text
-    def get_occupations(self, occupation):
-        self.data_text.config(text = occupation)
+
 
 
     # Read DB
