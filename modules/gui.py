@@ -18,7 +18,7 @@ class Gui():
         self.display_page_layout()
         
 
-        skiplogin = False # Debug: Set to true to skip the login screen
+        skiplogin = True # Debug: Set to true to skip the login screen
 
         if skiplogin:
             self.display_dashboard()
@@ -213,7 +213,7 @@ class Gui():
 
         self.display_treeview_data((True, 'employee', 'occupation', self.current_occupation))
 
-        self.getAvg(data_frame, )
+        #self.getAvg(data_frame, )
 
     def getAvg(self,frame, item=""):
         val = 0
