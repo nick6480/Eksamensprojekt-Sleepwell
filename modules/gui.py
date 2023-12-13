@@ -11,14 +11,14 @@ class Gui():
         self.root.geometry('1280x720')
 
         self.data = Data()
-
-        self.current_occupation = 'Doctor'
+        
+        self.current_occupation = 'All'
 
         self.style()
-
         self.display_page_layout()
         
-        skiplogin = True # Debug: Set to true to skip the login screen
+
+        skiplogin = False # Debug: Set to true to skip the login screen
 
         if skiplogin:
             self.display_dashboard()
@@ -54,22 +54,52 @@ class Gui():
         login_content_frame = ttk.Frame(login_frame)
         login_content_frame.place(relx=0.5, rely=0.5, anchor='center')
 
-        login_label = ttk.Label(login_content_frame, text = "Login with ID")
-        login_label.pack()
+        login_label = ttk.Label(login_content_frame, text = "Login with ID", style = 'login_text.TLabel')
+        login_label.pack(pady = 10)
 
-        self.login_entry = ttk.Entry(login_content_frame)
+
+        self.login_entry=ttk.Entry(login_content_frame)
+            
         self.login_entry.pack()
         login_button = ttk.Button(login_content_frame, text='Login', command= lambda: self.login(login_frame))
-        login_button.pack()
+        login_button.pack(pady = 10)
+
+
+        self.error_msg_label = ttk.Label(login_content_frame, text = "", style = 'error_msg.TLabel')
+        self.error_msg_label.pack()
 
     
     # Login authentication (currently only checks if there is something in the entry)
     def login(self, login_frame):
-        login=self.login_entry.get()
-        if login:
-            self.destroy_frame(login_frame)
-            self.display_dashboard()
-            
+        id=self.login_entry.get()
+
+        try:
+            # Try converting the entered text to an integer
+            int(id)
+            if self.data.authenticate_user(id):
+                self.destroy_frame(login_frame)
+                self.display_dashboard()
+            else: 
+                self.error_msg_label.config(text = 'The entered id was not found')
+
+        except ValueError:
+            # If conversion fails, it's not a valid integer
+            print('INVALID')
+            self.error_msg_label.config(text = 'The entered id is not valid')
+
+
+
+        
+
+        
+
+        
+
+ 
+
+
+
+
 
     # DASHBOARD SCREEN
     def display_dashboard(self):
@@ -89,24 +119,27 @@ class Gui():
         data_frame.pack_propagate(0)
 
         
-        ocupation_frame.grid(row=0, column=0, sticky="nsew")
+        ocupation_frame.grid(pady = 0, row=0, column=0, sticky="nsew")
         data_frame.grid(row=0, column=1, sticky="nsew")
+        
 
         dash_frame.grid_columnconfigure(0, weight=1)
         dash_frame.grid_columnconfigure(1, weight=8)
 
 
-        ocupation_text = ttk.Label(ocupation_frame, text = "ocupation")
-        #ocupation_text.pack()
-
         self.data_text = ttk.Label(data_frame, text = self.current_occupation, justify="left", style='H2.TLabel')
         self.data_text.pack(anchor='nw', padx=10, pady=10)
 
-     
+        ocupation_btn_frame = ttk.Frame(ocupation_frame, style='o.TFrame')
+        ocupation_btn_frame.pack(fill=tk.BOTH, expand=True, pady = 15)
+
+
         occupation_temp = ['All', 'Accountant', 'Doctor', 'Engineer', 'Lawyer', 'Nurse', 'Sales Representative', 'Salesperson', 'Scientist', 'Software Engineer', 'Teacher']
         print(sorted(occupation_temp))
-        self.build_buttons(ocupation_frame, occupation_temp, 0, 5)
 
+        self.build_buttons(ocupation_btn_frame, occupation_temp, 0, 5, 100)
+        
+        
 
 
         # Treeview -- needs to be moved to own method
@@ -147,8 +180,8 @@ class Gui():
         self.data_table.heading('daily_steps', text = 'Daily Steps', anchor = tk.CENTER)
         self.data_table.heading('sleep_disorder', text = 'Sleep Disorder', anchor = tk.CENTER)
 
-        self.data_table.grid(row=1, column=0, padx=10, pady=(50, 0))
-
+        self.data_table.grid(sticky ='nwse', row=1, column=0, padx=10, pady=(60, 0))
+        
 
 
         # Add new rows to database and treeview -- REMOVE
@@ -171,14 +204,31 @@ class Gui():
         delete_btn = ttk.Button(data_options_frame, text = 'Delete', command=self.delete)
         delete_btn.pack(side='left', anchor='nw', padx=10, pady=10)
         
-        add_btn = ttk.Button(data_options_frame, text = 'Add')
+        add_btn = ttk.Button(data_options_frame, text = 'Add', takefocus=0)
         #add_btn.pack(side='left', anchor='nw', padx=10, pady=10)
         
-        upload_csv_btn = tk.Button(data_options_frame, text='Add CSV', command=self.upload_csv)
+        upload_csv_btn = ttk.Button(data_options_frame, text='Add CSV', command=self.upload_csv, takefocus=0)
         upload_csv_btn.pack(side='left', anchor='nw', padx=10, pady=10)
 
 
         self.display_treeview_data((True, 'employee', 'occupation', self.current_occupation))
+
+        self.getAvg(data_frame, )
+
+    def getAvg(self,frame, item=""):
+        val = 0
+        for row in self.data_table.get_children(item):
+            #print(trv.item(row)["values"][3])# print price
+            val = val + self.data.item(row)["values"][3]
+
+        val = val/len(self.data_table.get_children())
+       
+        self.data_text = ttk.Label(frame, text = val)
+        self.data_text.pack(anchor='nw', padx=10, pady=10)
+
+
+
+
 
     def upload_csv(self):
         filename = filedialog.askopenfilename()
@@ -254,7 +304,8 @@ class Gui():
             #print(f'input_entry row:{row}, col:{col}')
             entry = ttk.Entry(frame, style = entry_style)
             entry.grid(row=row, column=col)
-            
+
+
             col += 1
             if col == maxCol:
                 col = 0
@@ -265,9 +316,6 @@ class Gui():
     def button_events(self, event):
         clicked_button = event.widget.cget('text')
         self.get_occupations(clicked_button)
-
-
-
 
 
     # Read DB
@@ -303,11 +351,15 @@ class Gui():
         frame.destroy()
     
     # Generates buttons
-    def build_buttons(self, frame, btn_list, padx, pady):
+    def build_buttons(self, frame, btn_list, padx, pady, width):
         for btn_text in btn_list:
-            btn = ttk.Button(frame, text = btn_text )
+            btn = ttk.Button(frame, text = btn_text, width = width, compound='left')
             btn.bind('<Button-1>', self.button_events)
-            btn.pack(padx=padx, pady=pady)
+            btn.pack(anchor='nw',padx=0, ipady=10)
+            
+            sep = ttk.Separator(frame, style='TSeparator')
+            #sep.pack(fill = 'x', padx=(0,0), ipady=2),
+
 
     # Build treeview
     def build_treeview(self, frame):
@@ -324,7 +376,7 @@ class Gui():
     # Styling the widgets
     def style(self):
         style = ttk.Style()
-
+        style.theme_use('alt')
         """
             styles: 
                 TFrame -- The standard style for frames
@@ -341,17 +393,57 @@ class Gui():
 
         # Create style used by default for all Frames
         style.configure('TFrame', background='#303030') #All frames have this color as default
-        style.configure('o.TFrame', background='#404040') # Temp -- ocupation frame
+        style.configure('o.TFrame', background='#3a3e40') # Temp -- ocupation frame
         style.configure('d.TFrame', background='#303030') # Temp -- data frame
+        style.configure('test.TFrame', background='red') 
+
 
         style.configure('data.TLabel', background='red')    
-         
+        self.root.configure(background='#303030')
 
         style.configure('H2.TLabel', # Headings style
+            font=(None, 24),
+            background = '#303030',
+            foreground = 'white'
+        )
+
+        style.configure('error_msg.TLabel', # Headings style
+            font=(None, 12),
+            background = '#303030',
+            foreground = '#a13030'
+        )
+
+
+        style.configure('login_text.TLabel', # Headings style
             font=(None, 12),
             background = '#303030',
             foreground = 'white'
         )
+
+
+    
+        style.configure('TButton', 
+            background='#3a3e40',
+            foreground = 'white',
+            borderwidth=0
+        )
+
+
+
+
+
+
+        #style.configure('TButton', background = 'red', foreground = 'white', width = 20, borderwidth=1, focusthickness=3, focuscolor='none')
+        style.map('TButton', background=[('focus','#324d80')])
+
+
+        style.configure('TSeparator', 
+            background='#3a3e40',
+            borderwidth=0
+            
+        )
+        
+
 
 if __name__ == "__main__":
     Gui()

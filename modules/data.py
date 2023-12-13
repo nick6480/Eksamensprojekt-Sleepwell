@@ -29,6 +29,29 @@ class Data():
             
         return header, result
 
+    def authenticate_user(self, id):
+        mydb = self.connect_DB()
+        mycursor = mydb.cursor()
+
+        
+        # Execute a query to check if the employee_id exists
+        sql = f"SELECT * FROM employee WHERE person_id = {id}"
+        mycursor.execute(sql)
+        
+
+        
+        # Fetch the result
+        result = mycursor.fetchone()
+
+        # Check if the result is not None (i.e., the employee_id exists)
+        if result:
+            print(f"Employee with ID {id} exists.")
+            return True
+        else:
+            print(f"Employee with ID {id} does not exist.")
+            return False
+
+
 
     def csv_to_DB(self, path, data_dict):
         data = self.read_csv(path)
